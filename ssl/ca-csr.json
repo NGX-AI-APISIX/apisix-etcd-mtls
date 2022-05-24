@@ -1,0 +1,14 @@
+{
+    "CN": "www.etcd.com.cn",
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "City": "CN",
+            "Country": "ChengDu",
+            "Author": "Lhstack"
+        }
+    ]
+}

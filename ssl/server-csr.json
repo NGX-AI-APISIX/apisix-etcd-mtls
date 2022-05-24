@@ -1,0 +1,19 @@
+{
+    "CN": "www.etcd.com.cn",
+    "hosts":[
+        "10.100.110.80",
+        "10.100.110.81",
+        "10.100.110.82"
+    ],
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "City": "CN",
+            "Country": "ChengDu",
+            "Author": "Lhstack"
+        }
+    ]
+}
