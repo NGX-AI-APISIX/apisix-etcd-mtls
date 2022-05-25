@@ -3,24 +3,73 @@ version: "3"
 x-config:
   etcd_image: &etcd_image bitnami/etcd:3.5.4
   etcd_volumes: &etcd_volumes
-    - ./ssl:/opt/etcd/ssl
+    - ./cert:/opt/etcd/ssl
   etcd_env_basic: &etcd_env_basic
-    ALLOW_NONE_AUTHENTICATION: "true"
+    ETCD_ENABLE_V2: "true"
+    ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+    ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+    # ALLOW_NONE_AUTHENTICATION: "yes"
+    ETCD_ENABLE_GRPC_GATEWAY: "true"
+    ETCD_ROOT_PASSWORD: "123456"
   etcd_env_mtls: &etcd_env_mtls
     ETCD_CLIENT_CERT_AUTH: "true"
-    ETCD_CERT_FILE: /opt/etcd/ssl/server.pem
-    ETCD_KEY_FILE: /opt/etcd/ssl/server.key
-    ETCD_TRUSTED_CA_FILE: /opt/etcd/ssl/ca.pem
+    ETCD_TRUSTED_CA_FILE: "/opt/etcd/ssl/ca.pem"
+  etcd_env_tls: &etcd_env_tls
+    ETCD_CERT_FILE: "/opt/etcd/ssl/server.pem"
+    ETCD_KEY_FILE: "/opt/etcd/ssl/server-key.pem"
+    ETCD_LISTEN_CLIENT_URLS: "https://0.0.0.0:2379"
+    ETCD_ADVERTISE_CLIENT_URLS: "https://0.0.0.0:2379"
+  etcd_env_cluster: &etcd_env_cluster
+    ETCD_INITIAL_CLUSTER_STATE: "new"
+    ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
+    ETCD_INITIAL_CLUSTER: "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380"
+    ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
+  etcd_env_peer_tls: &etcd_env_peer_tls
+    ETCD_PEER_CLIENT_CERT_AUTH: "true"
+    ETCD_INITIAL_CLUSTER: "etcd1=https://etcd1:2380,etcd2=https://etcd2:2380,etcd3=https://etcd3:2380"
+    ETCD_LISTEN_PEER_URLS: "https://0.0.0.0:2380"
+    ETCD_PEER_TRUSTED_CA_FILE: "/opt/etcd/ssl/ca.pem"
+    ETCD_PEER_CERT_FILE: "/opt/etcd/ssl/server.pem"
+    ETCD_PEER_KEY_FILE: "/opt/etcd/ssl/server-key.pem"
+  etcd_env_client_tls: &etcd_env_client_tls
+    ETCD_CLIENT_CERT_FILE: "/opt/etcd/ssl/client.pem"
+    ETCD_CLIENT_KEY_FILE: "/opt/etcd/ssl/client-key.pem"
+
+x-etcd-common-config: &x-etcd-common-config
+  <<: *etcd_env_basic
+  <<: *etcd_env_tls
+#  <<: *etcd_env_mtls
+  <<: *etcd_env_cluster
+  <<: *etcd_env_client_tls
+  <<: *etcd_env_peer_tls
 
 services:
-  etcd_mtls:
+  etcd1:
     image: *etcd_image
     environment:
-      <<: *etcd_env_basic
-      <<: *etcd_env_mtls
-      ETCD_ADVERTISE_CLIENT_URLS: https://0.0.0.0:2379
-      ETCD_LISTEN_CLIENT_URLS: https://0.0.0.0:2379
+      <<: *x-etcd-common-config
+      ETCD_NAME: etcd1
+      # enable this env config when peer tls enabled
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "https://etcd1:2380"
     ports:
       - "2379:2379"
       - "2380:2380"
+    volumes: *etcd_volumes
+
+  etcd2:
+    image: *etcd_image
+    environment:
+      <<: *x-etcd-common-config
+      ETCD_NAME: etcd2
+      # enable this env config when peer tls enabled
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "https://etcd2:2380"
+    volumes: *etcd_volumes
+
+  etcd3:
+    image: *etcd_image
+    environment:
+      <<: *x-etcd-common-config
+      ETCD_NAME: etcd3
+      # enable this env config when peer tls enabled
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "https://etcd3:2380"
     volumes: *etcd_volumes

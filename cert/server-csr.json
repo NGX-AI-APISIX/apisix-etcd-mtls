@@ -1,0 +1,14 @@
+{
+  "CN": "etcd.server",
+  "hosts": [
+    "etcd.cluster",
+    "etcd1",
+    "etcd2",
+    "etcd3",
+    "127.0.0.1"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 4096
+  }
+}
